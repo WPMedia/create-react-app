@@ -12,6 +12,7 @@ const errorOverlayMiddleware = require('react-dev-utils/errorOverlayMiddleware')
 const evalSourceMapMiddleware = require('react-dev-utils/evalSourceMapMiddleware');
 const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware');
 const ignoredFiles = require('react-dev-utils/ignoredFiles');
+const redirectServedPath = require('react-dev-utils/redirectServedPathMiddleware');
 const paths = require('./paths');
 const fs = require('fs');
 
@@ -58,6 +59,7 @@ module.exports = function(proxy, allowedHost) {
     // for some reason broken when imported through Webpack. If you just want to
     // use an image, put it in `src` and `import` it from JavaScript instead.
     contentBase: paths.appPublic,
+    contentBasePublicPath: paths.publicUrlOrPath,
     // By default files from `contentBase` will not trigger a page reload.
     watchContentBase: true,
     // Enable hot reloading server. It will provide /sockjs-node/ endpoint
@@ -72,9 +74,10 @@ module.exports = function(proxy, allowedHost) {
     // Prevent a WS client from getting injected as we're already including
     // `webpackHotDevClient`.
     injectClient: false,
-    // It is important to tell WebpackDevServer to use the same "root" path
-    // as we specified in the config. In development, we always serve from /.
-    publicPath: '/',
+    // It is important to tell WebpackDevServer to use the same "publicPath" path as
+    // we specified in the Webpack config. When homepage is '.', default to serving
+    // from the root.
+    publicPath: paths.publicUrlOrPath,
     // WebpackDevServer is noisy by default so we emit custom message instead
     // by listening to the compiler events with `compiler.hooks[...].tap` calls above.
     quiet: true,
@@ -97,22 +100,27 @@ module.exports = function(proxy, allowedHost) {
     public: allowedHost,
     proxy,
     before(app, server) {
-      if (fs.existsSync(paths.proxySetup)) {
-        // This registers user provided middleware for proxy reasons
-        require(paths.proxySetup)(app);
-      }
-
+      // Keep `evalSourceMapMiddleware` and `errorOverlayMiddleware`
+      // middlewares before `redirectServedPath` otherwise will not have any effect
       // This lets us fetch source contents from webpack for the error overlay
       app.use(evalSourceMapMiddleware(server));
       // This lets us open files from the runtime error overlay.
       app.use(errorOverlayMiddleware());
+
+      // Redirect to `PUBLIC_URL` or `homepage` from `package.json` if url not match
+      app.use(redirectServedPath(paths.publicUrlOrPath));
+
+      if (fs.existsSync(paths.proxySetup)) {
+        // This registers user provided middleware for proxy reasons
+        require(paths.proxySetup)(app);
+      }
 
       // This service worker file is effectively a 'no-op' that will reset any
       // previous service worker registered for the same host:port combination.
       // We do this in development to avoid hitting the production cache if
       // it used the same host and port.
       // https://github.com/facebook/create-react-app/issues/2272#issuecomment-302832432
-      app.use(noopServiceWorkerMiddleware());
+      app.use(noopServiceWorkerMiddleware(paths.publicUrlOrPath));
     },
   };
 };
