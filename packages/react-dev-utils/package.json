@@ -29,6 +29,7 @@
     "getCacheIdentifier.js",
     "getCSSModuleLocalIdent.js",
     "getProcessForPort.js",
+    "getPublicUrlOrPath.js",
     "globby.js",
     "ignoredFiles.js",
     "immer.js",
