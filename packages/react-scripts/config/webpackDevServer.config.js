@@ -66,9 +66,10 @@ module.exports = function(proxy, allowedHost) {
     // in the Webpack development configuration. Note that only changes
     // to CSS are currently hot reloaded. JS changes will refresh the browser.
     hot: true,
-    // It is important to tell WebpackDevServer to use the same "root" path
-    // as we specified in the config.
-    publicPath: paths.servedPath.slice(0, -1),
+    // It is important to tell WebpackDevServer to use the same "root" path as
+    // we specified in the config. When homepage is '.', default to serving
+    // from the root.
+    publicPath: paths.servedPath === './' ? '/' : paths.servedPath.slice(0, -1),
     // WebpackDevServer is noisy by default so we emit custom message instead
     // by listening to the compiler events with `compiler.hooks[...].tap` calls above.
     quiet: true,
