@@ -343,7 +343,7 @@ The `args` object accepts a number of properties:
 
 Creates a WebpackDevServer `proxy` configuration object from the `proxy` setting in `package.json`.
 
-##### `prepareUrls(protocol: string, host: string, port: number): Object`
+##### `prepareUrls(protocol: string, host: string, port: number, pathname: string = '/'): Object`
 
 Returns an object with local and remote URLs for the development server. Pass this object to `createCompiler()` described above.
 
