@@ -12,11 +12,16 @@ const errorOverlayMiddleware = require('react-dev-utils/errorOverlayMiddleware')
 const evalSourceMapMiddleware = require('react-dev-utils/evalSourceMapMiddleware');
 const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware');
 const ignoredFiles = require('react-dev-utils/ignoredFiles');
+const redirectServedPath = require('react-dev-utils/redirectServedPathMiddleware');
 const paths = require('./paths');
 const fs = require('fs');
 
 const protocol = process.env.HTTPS === 'true' ? 'https' : 'http';
 const host = process.env.HOST || '0.0.0.0';
+
+// Some apps do not use client-side routing with pushState.
+// For these, "homepage" can be set to "." to enable relative asset paths.
+const shouldUseRelativeAssetPaths = paths.servedPath === './';
 
 module.exports = function(proxy, allowedHost) {
   return {
@@ -66,10 +71,10 @@ module.exports = function(proxy, allowedHost) {
     // in the Webpack development configuration. Note that only changes
     // to CSS are currently hot reloaded. JS changes will refresh the browser.
     hot: true,
-    // It is important to tell WebpackDevServer to use the same "root" path as
-    // we specified in the config. When homepage is '.', default to serving
+    // It is important to tell WebpackDevServer to use the same "publicPath" path as
+    // we specified in the Webpack config. When homepage is '.', default to serving
     // from the root.
-    publicPath: paths.servedPath === './' ? '/' : paths.servedPath.slice(0, -1),
+    publicPath: shouldUseRelativeAssetPaths ? '/' : paths.servedPath,
     // WebpackDevServer is noisy by default so we emit custom message instead
     // by listening to the compiler events with `compiler.hooks[...].tap` calls above.
     quiet: true,
@@ -88,27 +93,37 @@ module.exports = function(proxy, allowedHost) {
       // Paths with dots should still use the history fallback.
       // See https://github.com/facebook/create-react-app/issues/387.
       disableDotRule: true,
-      index: paths.servedPath,
+      index: shouldUseRelativeAssetPaths ? '/' : paths.servedPath,
     },
     public: allowedHost,
     proxy,
     before(app, server) {
-      if (fs.existsSync(paths.proxySetup)) {
-        // This registers user provided middleware for proxy reasons
-        require(paths.proxySetup)(app);
-      }
-
       // This lets us fetch source contents from webpack for the error overlay
       app.use(evalSourceMapMiddleware(server));
       // This lets us open files from the runtime error overlay.
       app.use(errorOverlayMiddleware());
+
+      // If servedPath is not relative redirect to `PUBLIC_URL` or `homepage` from `package.json`
+      if (!shouldUseRelativeAssetPaths) {
+        app.use(redirectServedPath(paths.servedPath.slice(0, -1)));
+      }
+
+      if (fs.existsSync(paths.proxySetup)) {
+        // This registers user provided middleware for proxy reasons
+        require(paths.proxySetup)(app);
+      }
 
       // This service worker file is effectively a 'no-op' that will reset any
       // previous service worker registered for the same host:port combination.
       // We do this in development to avoid hitting the production cache if
       // it used the same host and port.
       // https://github.com/facebook/create-react-app/issues/2272#issuecomment-302832432
-      app.use(noopServiceWorkerMiddleware());
+      // Should match `publicUrl` from Webpack config
+      app.use(
+        noopServiceWorkerMiddleware(
+          shouldUseRelativeAssetPaths ? '' : paths.servedPath.slice(0, -1)
+        )
+      );
     },
   };
 };
