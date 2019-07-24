@@ -63,6 +63,7 @@ module.exports = function(proxy, allowedHost) {
     // for some reason broken when imported through Webpack. If you just want to
     // use an image, put it in `src` and `import` it from JavaScript instead.
     contentBase: paths.appPublic,
+    contentBasePublicPath: '/test',
     // By default files from `contentBase` will not trigger a page reload.
     watchContentBase: true,
     // Enable hot reloading server. It will provide /sockjs-node/ endpoint
@@ -77,7 +78,7 @@ module.exports = function(proxy, allowedHost) {
     publicPath: shouldUseRelativeAssetPaths ? '/' : paths.servedPath,
     // WebpackDevServer is noisy by default so we emit custom message instead
     // by listening to the compiler events with `compiler.hooks[...].tap` calls above.
-    quiet: true,
+    quiet: false,
     // Reportedly, this avoids CPU overload on some systems.
     // https://github.com/facebook/create-react-app/issues/293
     // src/node_modules is not ignored to support absolute imports
@@ -93,7 +94,9 @@ module.exports = function(proxy, allowedHost) {
       // Paths with dots should still use the history fallback.
       // See https://github.com/facebook/create-react-app/issues/387.
       disableDotRule: true,
-      index: shouldUseRelativeAssetPaths ? '/' : paths.servedPath,
+      index: (shouldUseRelativeAssetPaths ? '/' : paths.servedPath).concat(
+        'index.html'
+      ),
     },
     public: allowedHost,
     proxy,

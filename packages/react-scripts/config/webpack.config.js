@@ -80,7 +80,7 @@ module.exports = function(webpackEnv) {
   const publicUrl =
     shouldUseRelativeAssetPaths && isEnvDevelopment
       ? ''
-      : publicPath.slice(0, -1);
+      : paths.servedPath.slice(0, -1);
 
   // Get environment variables to inject into our app.
   const env = getClientEnvironment(publicUrl);

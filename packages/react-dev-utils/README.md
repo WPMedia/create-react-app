@@ -294,7 +294,7 @@ Returns Express middleware that serves a `${servedPath}/service-worker.js` that 
 #### `redirectServedPathMiddleware(servedPath: string): ExpressMiddleware`
 
 Returns Express middleware that redirects to `${servedPath}/${req.path}`, if `req.url`
-does not start with servedPath``. Useful for development.
+does not start with `servedPath`. Useful for development.
 
 #### `openBrowser(url: string): boolean`
 
