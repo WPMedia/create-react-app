@@ -1,11 +1,11 @@
 {
-  "name": "react-scripts",
-  "version": "3.0.1",
-  "description": "Configuration and scripts for Create React App.",
+  "name": "websked-react-scripts",
+  "version": "3.0.2",
+  "description": "Arc WebSked Fork of Configuration and scripts for Create React App.",
   "homepage": "/test",
   "repository": {
     "type": "git",
-    "url": "https://github.com/facebook/create-react-app.git",
+    "url": "https://github.com/wpmedia/create-react-app.git",
     "directory": "packages/react-scripts"
   },
   "license": "MIT",
@@ -13,7 +13,7 @@
     "node": ">=8.10"
   },
   "bugs": {
-    "url": "https://github.com/facebook/create-react-app/issues"
+    "url": "https://github.com/wpmedia/create-react-app/issues"
   },
   "files": [
     "bin",
