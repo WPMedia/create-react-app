@@ -10,9 +10,7 @@
 
 const errorOverlayMiddleware = require('react-dev-utils/errorOverlayMiddleware');
 const evalSourceMapMiddleware = require('react-dev-utils/evalSourceMapMiddleware');
-const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware');
 const ignoredFiles = require('react-dev-utils/ignoredFiles');
-const redirectServedPath = require('react-dev-utils/redirectServedPathMiddleware');
 const paths = require('./paths');
 const fs = require('fs');
 
@@ -63,7 +61,6 @@ module.exports = function(proxy, allowedHost) {
     // for some reason broken when imported through Webpack. If you just want to
     // use an image, put it in `src` and `import` it from JavaScript instead.
     contentBase: paths.appPublic,
-    contentBasePublicPath: '/test',
     // By default files from `contentBase` will not trigger a page reload.
     watchContentBase: true,
     // Enable hot reloading server. It will provide /sockjs-node/ endpoint
@@ -108,7 +105,14 @@ module.exports = function(proxy, allowedHost) {
 
       // If servedPath is not relative redirect to `PUBLIC_URL` or `homepage` from `package.json`
       if (!shouldUseRelativeAssetPaths) {
-        app.use(redirectServedPath(paths.servedPath.slice(0, -1)));
+        const servedPath = paths.servedPath.slice(0, -1);
+        app.use(function redirectServedPathMiddleware(req, res, next) {
+          if (req.url === servedPath || req.url.startsWith(servedPath + '/')) {
+            next();
+          } else {
+            res.redirect(`${servedPath}${req.path}`);
+          }
+        });
       }
 
       if (fs.existsSync(paths.proxySetup)) {
@@ -122,11 +126,17 @@ module.exports = function(proxy, allowedHost) {
       // it used the same host and port.
       // https://github.com/facebook/create-react-app/issues/2272#issuecomment-302832432
       // Should match `publicUrl` from Webpack config
-      app.use(
-        noopServiceWorkerMiddleware(
-          shouldUseRelativeAssetPaths ? '' : paths.servedPath.slice(0, -1)
-        )
-      );
+      app.use(function noopServiceWorkerMiddleware(req, res, next) {
+        const servedPath = shouldUseRelativeAssetPaths
+          ? ''
+          : paths.servedPath.slice(0, -1);
+        if (req.url === `${servedPath}/service-worker.js`) {
+          res.setHeader('Content-Type', 'text/javascript');
+          res.send(`noop`);
+        } else {
+          next();
+        }
+      });
     },
   };
 };
