@@ -1,7 +1,7 @@
 {
-  "name": "websked-react-scripts",
+  "name": "arc-react-scripts",
   "version": "3.0.2",
-  "description": "Arc WebSked Fork of Configuration and scripts for Create React App.",
+  "description": "Arc Fork of Configuration and scripts for Create React App.",
   "homepage": "/test",
   "repository": {
     "type": "git",
