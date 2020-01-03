@@ -6,12 +6,14 @@
  */
 'use strict';
 
+const path = require('path');
+
 module.exports = function createRedirectServedPathMiddleware(servedPath) {
   return function redirectServedPathMiddleware(req, res, next) {
-    if (req.url === servedPath || req.url.startsWith(servedPath + '/')) {
+    if (req.url.startsWith(servedPath)) {
       next();
     } else {
-      res.redirect(`${servedPath}${req.path}`);
+      res.redirect(path.join(servedPath, req.path));
     }
   };
 };
